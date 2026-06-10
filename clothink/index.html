@@ -849,7 +849,7 @@ h1,h2,h3,h4,h5{
     </div>
     <div class="posts">
       <article class="post">
-        <div class="ph"><img src="assets/designs/d04_t.jpg" alt="Diseño Hecho a Mano" loading="lazy" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a28,#0f1820)'"></div>
+        <div class="ph" id="post1ph"><img src="assets/designs/d04_t.jpg" alt="Diseño Hecho a Mano" loading="lazy"></div>
         <div class="body">
           <span class="tag">Manifiesto</span>
           <h3>Por qué volvemos al 100% algodón</h3>
@@ -858,7 +858,7 @@ h1,h2,h3,h4,h5{
         </div>
       </article>
       <article class="post">
-        <div class="ph"><img src="assets/designs/d10_t.jpg" alt="Diseño Vortex Rider" loading="lazy" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1822,#0f1418)'"></div>
+        <div class="ph" id="post2ph"><img src="assets/designs/d10_t.jpg" alt="Diseño Vortex Rider" loading="lazy"></div>
         <div class="body">
           <span class="tag">Drop 001</span>
           <h3>Cuando el cyberpunk se encuentra al irezumi</h3>
@@ -867,7 +867,7 @@ h1,h2,h3,h4,h5{
         </div>
       </article>
       <article class="post">
-        <div class="ph"><img src="assets/designs/d19_t.jpg" alt="Diseño Pixel City" loading="lazy" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a2018,#0f180f)'"></div>
+        <div class="ph" id="post3ph"><img src="assets/designs/d19_t.jpg" alt="Diseño Pixel City" loading="lazy"></div>
         <div class="body">
           <span class="tag">Guía</span>
           <h3>Sube un diseño que imprima bien</h3>
@@ -1108,6 +1108,71 @@ const COLL_LABELS = {neon:"Neon Circuit", cosmic:"Cosmic Skate", irezumi:"Irezum
 const SIZES = ["XS","S","M","L","XL","XXL"];
 
 /* ============================================================
+   PLACEHOLDERS SVG (data URI) — se usan cuando no hay imagen real
+   ============================================================ */
+const THEMES = {
+  neon:    {c1:"#060d1c",c2:"#0a1830",c3:"#07111f",ac:"39E0E6",sym:"◈"},
+  cosmic:  {c1:"#0e0a1c",c2:"#1a1230",c3:"#0b0818",ac:"D9A441",sym:"✦"},
+  irezumi: {c1:"#1a0810",c2:"#280c18",c3:"#14060c",ac:"EF6F6C",sym:"⬡"}
+};
+
+function makePlaceholder(d){
+  const t = THEMES[d.collection] || THEMES.neon;
+  const lines = Array.from({length:9},(_,i)=>
+    `<line x1="${-60+i*60}" y1="0" x2="${340+i*60}" y2="400" stroke="#${t.ac}" stroke-width="0.6" opacity="0.07"/>`
+  ).join("");
+  const dots = Array.from({length:6},(_,i)=>
+    `<circle cx="${50+i*60}" cy="${30+((i*73)%340)}" r="1.5" fill="#${t.ac}" opacity="0.18"/>`
+  ).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+    <defs>
+      <linearGradient id="bg${d.code}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${t.c1}"/>
+        <stop offset="60%" stop-color="${t.c2}"/>
+        <stop offset="100%" stop-color="${t.c3}"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="400" fill="url(#bg${d.code})"/>
+    ${lines}${dots}
+    <rect x="60" y="145" width="280" height="110" rx="6"
+          fill="none" stroke="#${t.ac}" stroke-width="0.8" opacity="0.25"/>
+    <text x="200" y="178" font-family="Arial,Helvetica,sans-serif" font-size="10"
+          fill="#${t.ac}" text-anchor="middle" letter-spacing="5" opacity="0.85">${(COLL_LABELS[d.collection]||d.collection).toUpperCase()}</text>
+    <text x="200" y="213" font-family="Georgia,'Times New Roman',serif" font-size="26"
+          fill="#ECE7DD" text-anchor="middle" font-weight="bold">${d.title}</text>
+    <text x="200" y="237" font-family="'Courier New',monospace" font-size="10"
+          fill="#${t.ac}" text-anchor="middle" opacity="0.55">CK·${d.code}</text>
+    <text x="200" y="60" font-family="Georgia,serif" font-size="36"
+          fill="#${t.ac}" text-anchor="middle" opacity="0.08">${t.sym}</text>
+    <text x="200" y="380" font-family="Georgia,serif" font-size="32"
+          fill="#${t.ac}" text-anchor="middle" opacity="0.06">${t.sym}</text>
+  </svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function makePrintPlaceholder(d){
+  const t = THEMES[d.collection] || THEMES.neon;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 200">
+    <defs>
+      <linearGradient id="pp${d.code}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${t.c1}"/>
+        <stop offset="100%" stop-color="${t.c2}"/>
+      </linearGradient>
+    </defs>
+    <rect width="164" height="200" fill="url(#pp${d.code})"/>
+    <text x="82" y="80" font-family="Arial,sans-serif" font-size="8"
+          fill="#${t.ac}" text-anchor="middle" letter-spacing="3" opacity="0.9">${(COLL_LABELS[d.collection]||"").toUpperCase()}</text>
+    <text x="82" y="105" font-family="Georgia,serif" font-size="16"
+          fill="#ECE7DD" text-anchor="middle" font-weight="bold">${d.title}</text>
+    <text x="82" y="122" font-family="monospace" font-size="8"
+          fill="#${t.ac}" text-anchor="middle" opacity="0.6">CK·${d.code}</text>
+    <text x="82" y="160" font-family="Georgia,serif" font-size="30"
+          fill="#${t.ac}" text-anchor="middle" opacity="0.1">${t.sym}</text>
+  </svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+/* ============================================================
    UTILIDADES
    ============================================================ */
 const $ = s => document.querySelector(s);
@@ -1159,7 +1224,17 @@ function heroColor(){
   tee3d.style.color = COLORS.find(c => c.id === state.color).hex;
 }
 function heroDesign(){
-  printImg.setAttribute("href", state.custom || ("assets/designs/" + state.design.code + ".jpg"));
+  if(state.custom){
+    printImg.setAttribute("href", state.custom);
+  } else {
+    const realSrc = "assets/designs/" + state.design.code + ".jpg";
+    const fallback = makePrintPlaceholder(state.design);
+    const probe = new Image();
+    probe.onload  = () => printImg.setAttribute("href", realSrc);
+    probe.onerror = () => printImg.setAttribute("href", fallback);
+    probe.src = realSrc;
+    printImg.setAttribute("href", fallback);
+  }
   $("#specRef").textContent  = state.custom ? "CK·custom"  : "CK·" + state.design.code;
   $("#specName").textContent = state.custom ? "Tu diseño"  : state.design.title;
 }
@@ -1214,10 +1289,18 @@ function buildGrid(filter = "all"){
     const btn = document.createElement("button");
     btn.className = "tile";
     btn.setAttribute("aria-label", `Pedir camiseta ${d.title}`);
+
+    const ph = makePlaceholder(d);
+    const img = document.createElement("img");
+    img.alt     = d.title;
+    img.loading = "lazy";
+    img.src     = ph; // muestra placeholder de inmediato
+    const real  = new Image();
+    real.onload  = () => { img.src = "assets/designs/" + d.code + "_t.jpg"; };
+    real.src     = "assets/designs/" + d.code + "_t.jpg";
+
     btn.innerHTML = `
       <span class="tile-bg"></span>
-      <img src="assets/designs/${d.code}_t.jpg" alt="${d.title}" loading="lazy"
-           onerror="this.style.display='none'">
       <span class="coll-badge">${COLL_LABELS[d.collection] || d.collection}</span>
       <span class="tile-order"><span>Pedir · ${CONFIG.price}</span></span>
       <span class="meta">
@@ -1227,6 +1310,7 @@ function buildGrid(filter = "all"){
           <span class="meta-code">CK·${d.code}</span>
         </span>
       </span>`;
+    btn.insertBefore(img, btn.querySelector(".coll-badge"));
     btn.onclick = () => openOrder(d);
     gridEl.appendChild(btn);
   });
@@ -1393,7 +1477,15 @@ function omColor(){
   omTeeEl.style.color = COLORS.find(c => c.id === mst.color).hex;
 }
 function omDesign(){
-  omPrint.setAttribute("href", mst.custom || ("assets/designs/" + mst.design.code + ".jpg"));
+  if(mst.custom){
+    omPrint.setAttribute("href", mst.custom);
+  } else {
+    const fallback = makePrintPlaceholder(mst.design);
+    omPrint.setAttribute("href", fallback);
+    const probe = new Image();
+    probe.onload = () => omPrint.setAttribute("href", "assets/designs/" + mst.design.code + ".jpg");
+    probe.src = "assets/designs/" + mst.design.code + ".jpg";
+  }
   $("#omCode").textContent       = mst.custom ? "CK·custom"  : "CK·" + mst.design.code;
   $("#omDesignName").textContent = mst.custom ? "Tu diseño"  : mst.design.title;
 }
@@ -1540,6 +1632,22 @@ $("#yr").textContent = new Date().getFullYear();
 buildGrid("all");
 heroRender();
 omRender();
+
+/* Placeholders blog */
+[
+  {id:"post1ph", design: DESIGNS[3]},  // d04 Hecho a Mano — neon
+  {id:"post2ph", design: DESIGNS[9]},  // d10 Vortex Rider — cosmic
+  {id:"post3ph", design: DESIGNS[18]}  // d19 Pixel City   — cosmic
+].forEach(({id, design}) => {
+  const ph = document.getElementById(id);
+  if(!ph) return;
+  const img = ph.querySelector("img");
+  const fallback = makePlaceholder(design);
+  // Muestra placeholder de inmediato como fondo; si carga la foto real la usa
+  ph.style.background = `url('${fallback}') center/cover`;
+  img.style.cssText = "position:relative;z-index:1";
+  img.onerror = () => { img.style.display = "none"; };
+});
 </script>
 </body>
 </html>
